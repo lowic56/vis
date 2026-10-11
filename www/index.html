@@ -39,7 +39,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .dessin{width:100%;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;border-radius:10px;background:var(--paper);
 scrollbar-width:none}
 .dessin::-webkit-scrollbar{display:none}
-.dessin svg{display:block;width:100%;height:auto}
+.dessin>svg{display:block;width:100%;height:auto}
 .dessin svg>rect{fill:var(--paper)}
 .dessin marker path{fill:var(--ink)}
 :root[data-eff=dark] .dessin image{filter:url(#inv)}
@@ -80,6 +80,8 @@ scrollbar-width:none}
 .fld{margin-top:5px}
 .fl{font-size:11px;color:var(--mut);font-weight:600;margin-bottom:2px}
 .sel select{width:100%;height:36px;border:0;border-radius:11px;background:var(--chip);color:inherit;font:600 14px system-ui,sans-serif;padding:0 8px}
+.chips.wrap{flex-wrap:wrap;height:auto;overflow:visible;align-items:flex-start;gap:5px;padding:1px 0}
+.col .chip{height:32px;padding:0 9px;min-width:32px;font-size:13px}
 .col .libre{gap:4px}
 .col .libre .chip{padding:0 6px;min-width:36px}
 .col .sv span{display:none}.col .sb{width:30px}
@@ -108,7 +110,7 @@ scrollbar-width:none}
    (memes calculs, memes images, memes cotes). Fonctionne hors ligne. */
 
 const DIAMS = [1.6, 2, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 20, 24, 30, 36];
-const TABLE = {"1.6": {"pas": 0.35, "h_chc": 1.6, "h_th": 1.1, "h_tf": null, "ecrou": [1.3, 1.0, 1.6, null], "rond": {"S": 0.5, "M": 0.5, "L": 0.5, "LL": null}, "acier": [1.6, 3.1], "alu": [2.4, 3.9]}, "2": {"pas": 0.4, "h_chc": 2.0, "h_th": 1.4, "h_tf": null, "ecrou": [1.6, 1.2, 2.0, null], "rond": {"S": 0.6, "M": 0.6, "L": 0.6, "LL": null}, "acier": [2.0, 3.5], "alu": [3.0, 4.5]}, "2.5": {"pas": 0.45, "h_chc": 2.5, "h_th": 1.8, "h_tf": null, "ecrou": [2.0, 1.6, 2.5, null], "rond": {"S": 0.6, "M": 0.6, "L": 0.6, "LL": null}, "acier": [2.5, 4.0], "alu": [3.75, 5.25]}, "3": {"pas": 0.5, "h_chc": 3.0, "h_th": 2.0, "h_tf": 2.0, "ecrou": [2.4, 1.8, 3.0, 4.0], "rond": {"S": 0.6, "M": 0.6, "L": 0.8, "LL": 0.8}, "acier": [3.0, 5.0], "alu": [4.5, 6.5]}, "4": {"pas": 0.7, "h_chc": 4.0, "h_th": 2.8, "h_tf": 2.5, "ecrou": [3.2, 2.2, 4.0, 5.0], "rond": {"S": 0.8, "M": 0.8, "L": 1.0, "LL": 0.8}, "acier": [4.0, 6.5], "alu": [6.0, 8.5]}, "5": {"pas": 0.8, "h_chc": 5.0, "h_th": 3.5, "h_tf": 3.0, "ecrou": [4.7, 2.7, 5.0, 5.0], "rond": {"S": 1.0, "M": 1.0, "L": 1.0, "LL": 1.0}, "acier": [5.0, 8.0], "alu": [7.5, 10.5]}, "6": {"pas": 1.0, "h_chc": 6.0, "h_th": 4.0, "h_tf": 3.5, "ecrou": [5.2, 3.2, 6.0, 6.0], "rond": {"S": 1.6, "M": 1.6, "L": 1.6, "LL": 1.2}, "acier": [6.0, 10.0], "alu": [9.0, 13.0]}, "8": {"pas": 1.25, "h_chc": 8.0, "h_th": 5.3, "h_tf": 4.5, "ecrou": [6.8, 4.0, 8.0, 8.0], "rond": {"S": 1.6, "M": 1.6, "L": 2.0, "LL": 1.5}, "acier": [8.0, 13.0], "alu": [12.0, 17.0]}, "10": {"pas": 1.5, "h_chc": 10.0, "h_th": 6.4, "h_tf": 5.5, "ecrou": [8.4, 5.0, 10.0, 10.0], "rond": {"S": 2.0, "M": 2.0, "L": 2.5, "LL": 2.0}, "acier": [10.0, 16.0], "alu": [15.0, 21.0]}, "12": {"pas": 1.75, "h_chc": 12.0, "h_th": 7.5, "h_tf": 6.5, "ecrou": [10.8, 6.0, 12.0, 12.0], "rond": {"S": 2.0, "M": 2.5, "L": 3.0, "LL": 2.5}, "acier": [12.0, 19.0], "alu": [18.0, 25.0]}, "14": {"pas": 2.0, "h_chc": 14.0, "h_th": 8.8, "h_tf": 7.5, "ecrou": [12.8, 7.0, 14.0, 14.0], "rond": {"S": 3.0, "M": 2.5, "L": 3.0, "LL": 2.5}, "acier": [14.0, 22.0], "alu": [21.0, 29.0]}, "16": {"pas": 2.0, "h_chc": 16.0, "h_th": 10.0, "h_tf": null, "ecrou": [14.8, 8.0, 16.0, 16.0], "rond": {"S": 3.0, "M": 3.0, "L": 3.0, "LL": 3.0}, "acier": [16.0, 24.0], "alu": [24.0, 32.0]}, "20": {"pas": 2.5, "h_chc": 20.0, "h_th": 12.5, "h_tf": null, "ecrou": [18.0, 10.0, 20.0, 20.0], "rond": {"S": 3.0, "M": 3.0, "L": 3.0, "LL": 3.0}, "acier": [20.0, 30.0], "alu": [30.0, 40.0]}, "24": {"pas": 3.0, "h_chc": 24.0, "h_th": 15.0, "h_tf": null, "ecrou": [21.5, 12.0, 24.0, 24.0], "rond": {"S": 4.0, "M": 4.0, "L": 4.0, "LL": null}, "acier": [24.0, 36.0], "alu": [36.0, 48.0]}, "30": {"pas": 3.5, "h_chc": 30.0, "h_th": 18.7, "h_tf": null, "ecrou": [25.6, 15.0, 30.0, 30.0], "rond": {"S": 4.0, "M": 4.0, "L": 4.0, "LL": null}, "acier": [30.0, 44.0], "alu": [45.0, 59.0]}, "36": {"pas": 4.0, "h_chc": 36.0, "h_th": 22.5, "h_tf": null, "ecrou": [31.0, 18.0, 36.0, 36.0], "rond": {"S": null, "M": 5.0, "L": 5.0, "LL": null}, "acier": [36.0, 52.0], "alu": [54.0, 70.0]}};
+const TABLE = {"1.6": {"pas": 0.35, "h_chc": 1.6, "h_th": 1.1, "h_tf": null, "ecrou": [1.3, 1.0, 1.6, null], "rond": {"S": 0.5, "M": 0.5, "L": 0.5, "LL": null, "E": null}, "acier": [1.6, 3.1], "alu": [2.4, 3.9]}, "2": {"pas": 0.4, "h_chc": 2.0, "h_th": 1.4, "h_tf": null, "ecrou": [1.6, 1.2, 2.0, null], "rond": {"S": 0.6, "M": 0.6, "L": 0.6, "LL": null, "E": null}, "acier": [2.0, 3.5], "alu": [3.0, 4.5]}, "2.5": {"pas": 0.45, "h_chc": 2.5, "h_th": 1.8, "h_tf": null, "ecrou": [2.0, 1.6, 2.5, null], "rond": {"S": 0.6, "M": 0.6, "L": 0.6, "LL": null, "E": null}, "acier": [2.5, 4.0], "alu": [3.75, 5.25]}, "3": {"pas": 0.5, "h_chc": 3.0, "h_th": 2.0, "h_tf": 2.0, "ecrou": [2.4, 1.8, 3.0, 4.0], "rond": {"S": 0.6, "M": 0.6, "L": 0.8, "LL": null, "E": 1.0}, "acier": [3.0, 5.0], "alu": [4.5, 6.5]}, "4": {"pas": 0.7, "h_chc": 4.0, "h_th": 2.8, "h_tf": 2.5, "ecrou": [3.2, 2.2, 4.0, 5.0], "rond": {"S": 0.8, "M": 0.8, "L": 1.0, "LL": null, "E": 1.6}, "acier": [4.0, 6.5], "alu": [6.0, 8.5]}, "5": {"pas": 0.8, "h_chc": 5.0, "h_th": 3.5, "h_tf": 3.0, "ecrou": [4.7, 2.7, 5.0, 5.0], "rond": {"S": 1.0, "M": 1.0, "L": 1.0, "LL": 2.0, "E": 2.0}, "acier": [5.0, 8.0], "alu": [7.5, 10.5]}, "6": {"pas": 1.0, "h_chc": 6.0, "h_th": 4.0, "h_tf": 3.5, "ecrou": [5.2, 3.2, 6.0, 6.0], "rond": {"S": 1.6, "M": 1.6, "L": 1.6, "LL": 2.0, "E": 3.0}, "acier": [6.0, 10.0], "alu": [9.0, 13.0]}, "8": {"pas": 1.25, "h_chc": 8.0, "h_th": 5.3, "h_tf": 4.5, "ecrou": [6.8, 4.0, 8.0, 8.0], "rond": {"S": 1.6, "M": 1.6, "L": 2.0, "LL": 3.0, "E": 4.0}, "acier": [8.0, 13.0], "alu": [12.0, 17.0]}, "10": {"pas": 1.5, "h_chc": 10.0, "h_th": 6.4, "h_tf": 5.5, "ecrou": [8.4, 5.0, 10.0, 10.0], "rond": {"S": 2.0, "M": 2.0, "L": 2.5, "LL": 3.0, "E": 4.0}, "acier": [10.0, 16.0], "alu": [15.0, 21.0]}, "12": {"pas": 1.75, "h_chc": 12.0, "h_th": 7.5, "h_tf": 6.5, "ecrou": [10.8, 6.0, 12.0, 12.0], "rond": {"S": 2.0, "M": 2.5, "L": 3.0, "LL": 4.0, "E": 6.0}, "acier": [12.0, 19.0], "alu": [18.0, 25.0]}, "14": {"pas": 2.0, "h_chc": 14.0, "h_th": 8.8, "h_tf": 7.5, "ecrou": [12.8, 7.0, 14.0, 14.0], "rond": {"S": 3.0, "M": 2.5, "L": 3.0, "LL": 4.0, "E": 6.0}, "acier": [14.0, 22.0], "alu": [21.0, 29.0]}, "16": {"pas": 2.0, "h_chc": 16.0, "h_th": 10.0, "h_tf": null, "ecrou": [14.8, 8.0, 16.0, 16.0], "rond": {"S": 3.0, "M": 3.0, "L": 3.0, "LL": 5.0, "E": 6.0}, "acier": [16.0, 24.0], "alu": [24.0, 32.0]}, "20": {"pas": 2.5, "h_chc": 20.0, "h_th": 12.5, "h_tf": null, "ecrou": [18.0, 10.0, 20.0, 20.0], "rond": {"S": 3.0, "M": 3.0, "L": 3.0, "LL": 6.0, "E": 8.0}, "acier": [20.0, 30.0], "alu": [30.0, 40.0]}, "24": {"pas": 3.0, "h_chc": 24.0, "h_th": 15.0, "h_tf": null, "ecrou": [21.5, 12.0, 24.0, 24.0], "rond": {"S": 4.0, "M": 4.0, "L": 4.0, "LL": 6.0, "E": 10.0}, "acier": [24.0, 36.0], "alu": [36.0, 48.0]}, "30": {"pas": 3.5, "h_chc": 30.0, "h_th": 18.7, "h_tf": null, "ecrou": [25.6, 15.0, 30.0, 30.0], "rond": {"S": 4.0, "M": 4.0, "L": 4.0, "LL": 6.0, "E": 10.0}, "acier": [30.0, 44.0], "alu": [45.0, 59.0]}, "36": {"pas": 4.0, "h_chc": 36.0, "h_th": 22.5, "h_tf": null, "ecrou": [31.0, 18.0, 36.0, 36.0], "rond": {"S": null, "M": 5.0, "L": 5.0, "LL": 8.0, "E": null}, "acier": [36.0, 52.0], "alu": [54.0, 70.0]}};
 const IMG = {
   "TH": "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",
   "CHC": "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",
@@ -128,7 +130,10 @@ const IMG = {
 // DONNEES
 // --------------------------------------------------------------------------
 const ECROUS = ["Standard", "Bas", "à embase", "Nylstop"];
-const RONDELLES = ["S", "M", "L", "LL"];
+const RONDELLES = ["S", "M", "L", "LL", "E"];   // LL : ISO 7094 (M5-M36) ; E : épaisse DIN 7349 (M3-M30)
+const ROND_CHOIX = ["S", "M", "L", "LL", "E", "-"];
+const NOM_ROND = { S: "S", M: "M", L: "L", LL: "LL ISO 7094", E: "épaisse DIN 7349", Cuvette: "cuvette", "-": "aucune" };
+const nomRond = c => (NOM_ROND[c] !== undefined ? NOM_ROND[c] : String(c));
 const MATIERES = { acier: "Acier / Inox", alu: "Alu" };
 const IMPL_COEF = { acier: 1.0, alu: 1.5 };
 const LG_TH = [6, 8, 10, 12, 16, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80,
@@ -190,7 +195,7 @@ function forcageRondelleTete(tete, rondelle) {
 function rondelle(d, code) {
   if (code === "-" || code === "" || code === "Cuvette") return 0.0;
   if (!RONDELLES.includes(code)) throw new ErreurDonnee("Rondelle inconnue : " + code);
-  return donnee(TABLE[String(d)].rond[code], "Rondelle " + code, d);
+  return donnee(TABLE[String(d)].rond[code], "Rondelle " + nomRond(code), d);
 }
 function ecrou(d, type, autorises) {
   if (type === "-" || type === "" || type === null || type === undefined) return 0.0;
@@ -250,9 +255,9 @@ function calculVis(d, tete = "TH", rondTete = "M", epaisseur = 20.0, montage = "
       ecrou_t: ecrouT, contre_t: contreEcrou, titre_calc: "Longueur minimale calculée" });
     if (tf && rondTete !== "-") res.lignes.push(["Tête TF + cuvette", C]);
     res.lignes.push(
-      ["Rondelle tête (" + rondTete + ")", E],
+      ["Rondelle tête (" + nomRond(rondTete) + ")", E],
       ["Épaisseur à serrer", G],
-      ["Rondelle écrou (" + rondEcrou + ")", K],
+      ["Rondelle écrou (" + nomRond(rondEcrou) + ")", K],
       ["Écrou " + (ecrouT || "-"), M],
       ["Contre-écrou " + (contreEcrou || "-"), P],
       ["Longueur libre", S]);
@@ -273,7 +278,7 @@ function calculVis(d, tete = "TH", rondTete = "M", epaisseur = 20.0, montage = "
     res.lignes = [];
     if (teteH) res.lignes.push(["Tête TF + cuvette", teteH]);
     res.lignes.push(
-      ["Rondelle tête (" + rondTete + ")", E],
+      ["Rondelle tête (" + nomRond(rondTete) + ")", E],
       ["Épaisseur à serrer", G],
       ["Implantation mini (" + fmt(IMPL_COEF[matiere]) + " x Ø)", impl],
       ["Profondeur taraudage", prof]);
@@ -313,8 +318,8 @@ function calculBridage(d, libreG = 10, contreG = "-", ecrouG = "Standard", rondG
   const G = Number(epaisseur);
   const lignes = [
     ["Libre gauche", lg_], ["Contre-écrou G", cg], ["Écrou G", eg],
-    ["Rondelle G (" + rondG + ")", rg], ["Épaisseur à serrer", G],
-    ["Rondelle D (" + rondD + ")", rd], ["Écrou D", ed],
+    ["Rondelle G (" + nomRond(rondG) + ")", rg], ["Épaisseur à serrer", G],
+    ["Rondelle D (" + nomRond(rondD) + ")", rd], ["Écrou D", ed],
     ["Contre-écrou D", cd], ["Libre droite", ld_]];
   const mini = lg_ + cg + eg + rg + G + rd + ed + cd + ld_;
   const retenue = Math.ceil(Number((mini / 5.0).toFixed(9))) * 5;
@@ -326,9 +331,9 @@ function calculBridage(d, libreG = 10, contreG = "-", ecrouG = "Standard", rondG
 // --------------------------------------------------------------------------
 // DESSIN (images du classeur + cotes)
 // --------------------------------------------------------------------------
-const Y_VIS = 470, H_VIS = 192, X_FIN = 669, X_RDL1 = 179, W_RDL = 18;
+const Y_VIS = 470, H_VIS = 192, X_FIN = 669, X_RDL1 = 179, W_RDL = 18, W_RDL_E = 30;
 const X_RDL2 = 356, X_PILE = 373;
-const X_TROU = 464, Y_TROU = 456, W_TROU = 317, H_TROU = 217, X_TROU_FOND = 688;
+const X_TROU = 464, Y_TROU = 456, W_TROU = 317, H_TROU = 217, X_FILET = 654;   // fin du filetage (trait pointille vertical de l'image du trou)
 const Y_C1 = 429, Y_C2 = 464, Y_C0 = 345, Y_C15 = 387;
 const VIS_IMG = { TH: ["TH", 112, 470, 557, 192], CHC: ["CHC", 80, 470, 589, 192],
                   TF: ["TF", 145, 485, 524, 162] };
@@ -392,19 +397,50 @@ function pileMiroir(axe, x0, ec, contre) {
   return [geo.map(([n, x, w]) => svgImg(n, 2 * axe - (x + w), Y_VIS, w, H_VIS, true)), 2 * axe - xFin];
 }
 
+const largeurRdl = c => (c === "E" ? W_RDL_E : W_RDL);
+/* Rondelle : l'image d'origine (18 px) ou, pour une rondelle épaisse, la même image
+   étirée en 3 tranches (bords inchangés, milieu étiré) pour garder des traits nets. */
+function svgRdl(x, y, w, h) {
+  if (w <= W_RDL + 0.5) return svgImg("RDL", x, y, w, h);
+  const im = svgImg("RDL", 0, 0, W_RDL, h), g3 = (sx, sw, dx, dw) => '<svg x="' + g(dx) + '" y="' + g(y) +
+    '" width="' + g(dw) + '" height="' + g(h) + '" viewBox="' + sx + " 0 " + sw + " " + h +
+    '" preserveAspectRatio="none">' + im + "</svg>";
+  return g3(0, 3, x, 3) + g3(8, 2, x + 3, w - 6) + g3(15, 3, x + w - 3, 3);
+}
+/* Vis raccourcie : corps (tête + tige) conservé, extrémité (chanfrein + bout) de l'image
+   d'origine replacée à xFin ; la portion de tige uniforme entre les deux est supprimée. */
+const VIS_W0 = { TH: 476, CHC: 504, TF: 469 }, VIS_TIP = { TH: 13, CHC: 12, TF: 13 };
+function svgVisCourte(tete, xFin) {
+  const [nom, x, y, w, h] = VIS_IMG[tete];
+  const w0 = VIS_W0[tete], tip = VIS_TIP[tete], k = w / w0, tw = tip * k;
+  const gauche = xFin - x - tw, im = svgImg(nom, 0, 0, w0, h);
+  return '<svg x="' + g(x) + '" y="' + g(y) + '" width="' + g(gauche) + '" height="' + g(h) + '" viewBox="0 0 ' +
+    g(gauche / k) + " " + h + '" preserveAspectRatio="none">' + im + "</svg>" +
+    '<svg x="' + g(xFin - tw) + '" y="' + g(y) + '" width="' + g(tw) + '" height="' + g(h) + '" viewBox="' +
+    (w0 - tip) + " 0 " + tip + " " + h + '" preserveAspectRatio="none">' + im + "</svg>";
+}
+
+/* Bout de la vis dans le trou : position proportionnelle à l'implantation réelle
+   sur la profondeur de filet (sans longueur standard : milieu entre mini et fond de filet). */
+function xBoutTrou(r) {
+  const prof = r.prof_taraudage;
+  const f = r.implantation !== undefined ? r.implantation / prof : (r.impl_mini / prof + 1) / 2;
+  return X_TROU + (X_FILET - X_TROU) * Math.min(1, Math.max(0, f));
+}
 function svgVis(r) {
   const trou = r.montage === "trou";
   const tete = r.tete, rond = r.rond_tete;
   const imgVis = VIS_IMG[tete];
-  const corps = [svgImg(...imgVis)];
+  const xBout = trou ? xBoutTrou(r) : X_FIN;
+  const corps = [trou ? svgVisCourte(tete, xBout) : svgImg(...imgVis)];
   let xE, xCoteTete;
   if (tete === "TF") {
     xE = rond === "Cuvette" ? 197 : 145;
     xCoteTete = 143;
   } else {
     if (rond !== "-" && rond !== "") {
-      corps.push(svgImg("RDL", X_RDL1, Y_VIS, W_RDL, H_VIS));
-      xE = X_RDL1 + W_RDL;
+      corps.push(svgRdl(X_RDL1, Y_VIS, largeurRdl(rond), H_VIS));
+      xE = X_RDL1 + largeurRdl(rond);
     } else xE = X_RDL1;
     xCoteTete = imgVis[1];
   }
@@ -416,17 +452,19 @@ function svgVis(r) {
     cotes.push(svgCote(xE, X_TROU, Y_C1, "Epaisseur = " + fmt(r.G), 526));
     const prof = r.prof_taraudage, impl = r.impl_mini;
     if (r.implantation !== undefined)
-      cotes.push(svgCote(X_TROU, X_FIN, Y_C1, "Implantation = " + fmt(r.implantation), 526));
-    const xMini = X_TROU + (X_TROU_FOND - X_TROU) * Math.min(1.0, impl / prof);
+      cotes.push(svgCote(X_TROU, xBout, Y_C1, "Implantation = " + fmt(r.implantation), 526));
+    const xMini = X_TROU + (X_FILET - X_TROU) * Math.min(1.0, impl / prof);
     cotes.push(svgCote(X_TROU, xMini, Y_C15, "Implantation mini = " + fmt(impl), 526));
-    cotes.push(svgCote(X_TROU, X_TROU_FOND, Y_C0, "Profondeur taraudage = " + fmt(prof), 526));
+    cotes.push(svgCote(X_TROU, X_FILET, Y_C0, "Profondeur taraudage = " + fmt(prof), 526));
     if (r.retenue === null)
       cotes.push(svgTexte(X_FIN + 110, 702, "Longueur non standard", "end", "tx rouge"));
     return svgCadre(corps.concat(cotes).join(""), 60, 305, 800, 712);
   }
-  const xP = r.K > 0 ? X_RDL2 : X_PILE;
-  if (r.K > 0) corps.push(svgImg("RDL", X_RDL2, Y_VIS, W_RDL, H_VIS));
-  const [pile, xFin] = pileDroite(X_PILE, r.ecrou_t, r.contre_t);
+  const wK = r.K > 0 ? largeurRdl(r.rond_ecrou) : 0;
+  const x0Pile = X_RDL2 + (wK > 0 ? wK : W_RDL) - 1;
+  const xP = r.K > 0 ? X_RDL2 : x0Pile;
+  if (r.K > 0) corps.push(svgRdl(X_RDL2, Y_VIS, wK, H_VIS));
+  const [pile, xFin] = pileDroite(x0Pile, r.ecrou_t, r.contre_t);
   corps.push(...pile, ...surcouche);
   cotes.push(svgCote(xE, xP, Y_C1, "Epaisseur = " + fmt(r.G), 526));
   if (r.retenue === null) {
@@ -441,17 +479,21 @@ function svgVis(r) {
 
 function svgBridage(r, e) {
   const rg = r.lignes[3][1], rd = r.lignes[5][1], G = r.lignes[4][1];
+  const wg = rg > 0 ? largeurRdl(e.rg) : 0, wd = rd > 0 ? largeurRdl(e.rd) : 0;
   const X0 = 158, X1 = 1129;
   const axe = (X0 + X1) / 2.0, demi = 79.5;
-  const xd = axe + demi, xg = axe - demi - W_RDL, xPile = xd + W_RDL - 1;
+  const xg = axe - demi, xd = axe + demi;                 // faces de l'épaisseur
+  const xPileD = xd + (wd > 0 ? wd : W_RDL) - 1;          // début des écrous à droite
+  const bordG = xg - (wg > 0 ? wg : W_RDL) + 1;           // bord du premier écrou à gauche
+  const axeG = (bordG + xPileD) / 2.0;                    // axe de symétrie de la pile gauche
   const corps = [svgImg("TIGE", X0, 523, X1 - X0, 87)];
-  const [pg, xG0] = pileMiroir(axe, xPile, r.lignes[2][1] > 0 ? e.eg : "-", r.lignes[1][1] > 0 ? e.cg : "-");
-  const [pd, xD1] = pileDroite(xPile, r.lignes[6][1] > 0 ? e.ed : "-", r.lignes[7][1] > 0 ? e.cd : "-");
+  const [pg, xG0] = pileMiroir(axeG, xPileD, r.lignes[2][1] > 0 ? e.eg : "-", r.lignes[1][1] > 0 ? e.cg : "-");
+  const [pd, xD1] = pileDroite(xPileD, r.lignes[6][1] > 0 ? e.ed : "-", r.lignes[7][1] > 0 ? e.cd : "-");
   corps.push(...pg, ...pd);
-  const xP0 = rg > 0 ? xg + W_RDL : xg;
-  const xP1 = rd > 0 ? xd : xd + W_RDL;
-  if (rg > 0) corps.push(svgImg("RDL", xg, Y_VIS + 1, W_RDL, H_VIS));
-  if (rd > 0) corps.push(svgImg("RDL", xd, Y_VIS + 1, W_RDL, H_VIS));
+  const xP0 = wg > 0 ? xg : xg - W_RDL;
+  const xP1 = wd > 0 ? xd : xd + W_RDL;
+  if (wg > 0) corps.push(svgRdl(xg - wg, Y_VIS + 1, wg, H_VIS));
+  if (wd > 0) corps.push(svgRdl(xd, Y_VIS + 1, wd, H_VIS));
   const f = FS_BRI;
   const cotes = [
     svgCote(X0, xP0, Y_C1, fmt(r.cote_demi), 526, f),
@@ -495,8 +537,8 @@ const A = (k, v) => 'data-s="' + CUR + '" data-k="' + k + '" data-v="' + esc(v) 
 const lab = (labels, o) => esc(labels && labels[o] !== undefined ? labels[o] : o);
 const row = (lb, ctl) => '<div class="row"><div class="lb">' + lb + '</div><div class="rc">' + ctl + "</div></div>";
 const field = (lb, ctl) => '<div class="fld"><div class="fl">' + lb + "</div>" + ctl + "</div>";
-function chips(k, options, valeur, labels, keep) {
-  return '<div class="chips"' + (keep ? ' data-keep="' + k + '"' : "") + ">" +
+function chips(k, options, valeur, labels, keep, wrap) {
+  return '<div class="chips' + (wrap ? " wrap" : "") + '"' + (keep ? ' data-keep="' + k + '"' : "") + ">" +
     options.map(o => '<button type="button" class="chip' + (String(o) === String(valeur) ? " on" : "") + '" ' +
       A(k, o) + ">" + lab(labels, o) + "</button>").join("") + "</div>";
 }
@@ -523,7 +565,7 @@ function libreW(kmode, kval, e) {              // [Std] + valeur
     A(kmode, std ? "perso" : "std") + ' title="Standard : 2 filets">Std</button>' +
     stepper(kval, std ? fmt(2 * pasDe(e)) : e[kval], std) + "</div>";
 }
-const L_ROND = { "-": "Aucune" }, L_CE = { "-": "Aucun", "Standard": "Std" },
+const L_ROND = { "-": "Aucune", "E": "Épaisse" }, L_CE = { "-": "Aucun", "Standard": "Std" },
       L_EC = { "Standard": "Std", "à embase": "Embase" },
       L_ECS = { "à embase": "À embase" };
 const dLabels = {}; DIAMS.forEach(k => { dLabels[k] = "M" + fmt(k); });
@@ -549,6 +591,7 @@ function pageVis() {
   CUR = "v";
   const e = ETAT.v;
   if (!(e.mat in MATIERES)) e.mat = "acier";
+  if (!ROND_CHOIX.includes(e.re)) e.re = DEF_VIS.re;
   if (e.mo !== "ecrou" && e.mo !== "trou") e.mo = "ecrou";
   let r = null, erreur = null; const notes = [];
   try {
@@ -588,15 +631,15 @@ function pageVis() {
   }
   ETAT.lignes = r ? r.lignes : null;
   const fig = r ? figure(svgVis(r)) : '<section class="fig vide"></section>';
-  const rondelles = e.t === "TF" ? ["Cuvette", "-"] : ["S", "M", "L", "LL", "-"];
+  const rondelles = e.t === "TF" ? ["Cuvette", "-"] : ROND_CHOIX;
   let ctl = row("Ø", chips("d", DIAMS, e.d, dLabels, true));
-  if (trou) ctl += row("Matière", seg("mat", ["acier", "alu"], e.mat, { acier: "Acier / Inox 1×Ø", alu: "Alu 1,5×Ø" }));
-  ctl += row("Tête", seg("t", ["TH", "CHC", "TF"], e.t));
-  ctl += row("Rondelle", chips("rt", rondelles, e.rt, L_ROND));
+  if (trou) ctl += row("Matière", chips("mat", ["acier", "alu"], e.mat, { acier: "Acier / Inox", alu: "Alu" }));
+  ctl += row("Tête", chips("t", ["TH", "CHC", "TF"], e.t));
+  ctl += row("Rondelle", chips("rt", rondelles, e.rt, L_ROND, false, true));
   ctl += row("Épaisseur", stepper("ep", e.ep));
   if (!trou) {
     ctl += '<div class="sep">Côté écrou</div>';
-    ctl += row("Rondelle", chips("re", ["S", "M", "L", "LL", "-"], e.re, L_ROND));
+    ctl += row("Rondelle", chips("re", ROND_CHOIX, e.re, L_ROND, false, true));
     ctl += row("Écrou", chips("ec", ECROUS, e.ec, L_EC));
     ctl += row("Contre-écr.", chips("ce", ["-", "Standard", "Bas"], e.ce, L_CE));
     ctl += row("Libre", libreW("li", "liv", e));
@@ -607,6 +650,7 @@ function pageVis() {
 function pageBridage() {
   CUR = "b";
   const e = ETAT.b;
+  for (const k of ["rg", "rd"]) if (!ROND_CHOIX.includes(e[k])) e[k] = DEF_BRI[k];   // plus de cuvette en bridage
   let r = null, erreur = null;
   try {
     const d = diam(num(e.d, "Diamètre"));
@@ -618,11 +662,10 @@ function pageBridage() {
     stats: [["Mini calculé", fmt(r.mini)], ["Bout → pièce", fmt(r.cote_demi)]] }) : bandeau({ erreur });
   ETAT.lignes = r ? r.lignes : null;
   const fig = r ? figure(svgBridage(r, e)) : '<section class="fig vide"></section>';
-  const rond = ["S", "M", "L", "LL", "Cuvette", "-"];
   const cote = (titre, kE, kC, kR, kLm, kLv) => '<div class="col"><div class="ct">' + titre + "</div>" +
-    field("Écrou", select(kE, ECROUS, e[kE], L_ECS)) +
-    field("Contre-écrou", select(kC, ["-", "Standard", "Bas"], e[kC], { "-": "Aucun" })) +
-    field("Rondelle", select(kR, rond, e[kR], L_ROND)) +
+    field("Rondelle", chips(kR, ROND_CHOIX, e[kR], L_ROND, false, true)) +
+    field("Écrou", chips(kE, ECROUS, e[kE], L_EC, false, true)) +
+    field("Contre-écrou", chips(kC, ["-", "Standard", "Bas"], e[kC], L_CE, false, true)) +
     field("Longueur libre", libreW(kLm, kLv, e)) + "</div>";
   let ctl = row("Ø", chips("d", DIAMS, e.d, dLabels, true)) + row("Épaisseur", stepper("ep", e.ep));
   ctl += '<div class="cols">' + cote("Gauche", "eg", "cg", "rg", "lg", "lgv") + cote("Droite", "ed", "cd", "rd", "ld", "ldv") + "</div>";
